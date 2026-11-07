@@ -35,6 +35,13 @@ class AddressController extends Controller
             Auth::user()->addresses()->create($validated);
         });
 
+        // Phase 5: if this address was added from the checkout page (a
+        // hidden "redirect" field on the form carries that through), send
+        // the customer back to checkout instead of the address book.
+        if ($request->input('redirect') === 'checkout') {
+            return redirect()->route('checkout.index')->with('success', 'Address added.');
+        }
+
         return redirect()->route('account.addresses.index')->with('success', 'Address added.');
     }
 

@@ -78,9 +78,12 @@
             <input class="form-control form-control-lux" placeholder="Promo code">
             <button class="btn btn-ghost px-3" type="submit">Apply</button>
           </form>
-          <button class="btn btn-gold w-100 mt-3" id="checkout">Secure checkout</button>
+          {{-- Phase 5: checkout is real now — links straight to it. If the bag is
+               empty, CheckoutController::index() itself redirects back here with
+               a message, so this never needs to be disabled/guarded in JS. --}}
+          <a href="{{ route('checkout.index') }}" class="btn btn-gold w-100 mt-3 text-center" id="checkout">Secure checkout</a>
           <p class="text-muted-lux text-center mt-3 mb-0" style="font-size:.72rem;letter-spacing:.18em">
-            <i class="bi bi-shield-lock text-gold me-1"></i>ENCRYPTED PAYMENT
+            <i class="bi bi-shield-check text-gold me-1"></i>PAY ON DELIVERY
           </p>
         </div>
       </div>

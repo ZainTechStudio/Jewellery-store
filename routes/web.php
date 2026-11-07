@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
@@ -65,4 +66,16 @@ Route::middleware('auth')->prefix('account')->name('account.')->group(function (
     Route::get('/addresses/{address}/edit', [AddressController::class, 'edit'])->name('addresses.edit');
     Route::patch('/addresses/{address}', [AddressController::class, 'update'])->name('addresses.update');
     Route::delete('/addresses/{address}', [AddressController::class, 'destroy'])->name('addresses.destroy');
+});
+
+// Phase 5: checkout requires authentication — an unauthenticated visitor
+// hitting these is bounced to /login by the 'auth' middleware and, since
+// AuthController::login() already uses redirect()->intended(), lands back
+// here automatically after signing in. The guest cart they had is merged
+// into their account cart by the existing Phase 4 login flow before they
+// even see this page again.
+Route::middleware('auth')->group(function () {
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
 });

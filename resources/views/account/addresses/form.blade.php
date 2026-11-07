@@ -33,6 +33,7 @@
         <form method="POST" action="{{ $address->exists ? route('account.addresses.update', $address) : route('account.addresses.store') }}" class="row g-3 mt-2">
           @csrf
           @if($address->exists) @method('PATCH') @endif
+          @if(request('redirect')) <input type="hidden" name="redirect" value="{{ request('redirect') }}"> @endif
 
           <div class="col-md-6"><input type="text" name="type" value="{{ old('type', $address->type) }}" class="form-control form-control-lux" placeholder="Label (e.g. Home, Work)"></div>
           <div class="col-md-6"><input type="text" name="contact_name" value="{{ old('contact_name', $address->contact_name) }}" required class="form-control form-control-lux" placeholder="Contact name"></div>

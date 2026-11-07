@@ -73,10 +73,7 @@
     document.getElementById("clearBtn").addEventListener("click", function () {
       window.cartRequest("/cart", "DELETE").then(handleResponse);
     });
-
-    document.getElementById("checkout").addEventListener("click", function () {
-      var hasItems = list.querySelector(".cart-row") !== null;
-      window.toast(hasItems ? "Checkout is a demo in this frontend" : "Your bag is empty");
-    });
+    // Phase 5: "Secure checkout" is now a real link to /checkout (see
+    // cart.blade.php) — no JS needed here any more.
   });
 })();
