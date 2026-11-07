@@ -28,14 +28,10 @@
         <span class="badge-lux">{{ $badge }}</span>
       @endif
       <img src="{{ $image ? asset($image->image_path) : asset('img/p1.jpg') }}" alt="{{ $image->alt_text ?? $product->name }}" loading="lazy" width="900" height="900">
-      <span class="quick-add"
-            data-add
-            data-product-id="{{ $product->id }}"
-            data-product-name="{{ $product->name }}"
-            data-product-price="{{ $product->has_discount ? $product->sale_price : $product->price }}"
-            data-product-img="{{ $image ? asset($image->image_path) : asset('img/p1.jpg') }}"
-            data-product-cat="{{ $product->category->name ?? '' }}"
-            data-product-url="{{ route('product.show', $product) }}">Add to bag</span>
+      {{-- Phase 3: only the product id is sent to the cart backend — price,
+           name, image etc. are never client-submitted; the server looks
+           everything up from the database when /cart/add is called. --}}
+      <span class="quick-add" data-add data-product-id="{{ $product->id }}">Add to bag</span>
     </a>
     <div class="card-body-lux">
       <span class="card-cat">{{ $product->category->name ?? '' }}</span>

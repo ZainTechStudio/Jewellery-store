@@ -18,6 +18,14 @@ Route::get('/product/{product:slug}', [ProductController::class, 'show'])->name(
 
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 
+// Phase 3: database-backed cart actions, scoped to the current session's
+// cart (see Cart::current()/findCurrent() and the ownership checks in
+// CartController). No checkout/order/payment routes here — just the cart.
+Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+Route::patch('/cart/{cartItem}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/cart/{cartItem}', [CartController::class, 'remove'])->name('cart.remove');
+Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
+
 Route::get('/about', [PageController::class, 'about'])->name('about');
 
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');

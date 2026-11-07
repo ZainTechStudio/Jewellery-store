@@ -4,56 +4,54 @@
 (function () {
   "use strict";
 
-  /* ---------- Money formatting ----------
-     Phase 2: the hardcoded PRODUCTS catalogue and findProduct() are gone —
-     the database (via Laravel/Blade) is now the only source of truth for
-     product data. This helper is pure number formatting, kept because
-     cart.js still uses it to display the localStorage cart (cart business
-     logic itself is out of scope for this phase; see cart.js). */
+  /* ---------- Money formatting ---------- */
   const money = (n) => "$" + Number(n).toLocaleString("en-US");
   window.money = money;
 
-  /* ---------- Cart (localStorage) ---------- */
-  const KEY = "aurelia_cart";
-  const getCart = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } };
-  const saveCart = (c) => { localStorage.setItem(KEY, JSON.stringify(c)); paintCount(); };
-  window.getCart = getCart;
-  window.saveCart = saveCart;
+  /* ---------- Cart (Phase 3: database-backed) ----------
+     The localStorage cart is gone — the database is now the only source
+     of truth. This is a small fetch() helper (CSRF token read from the
+     <meta name="csrf-token"> tag in layouts/app.blade.php) that every
+     cart action (add/update/remove/clear) uses; see cart.js and
+     product.js for where it's called. Nothing here decides price,
+     stock or product data — the server does, and returns the fresh
+     cart state in the response. */
+  function csrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute("content") : "";
+  }
 
-  function paintCount() {
-    const n = getCart().reduce((s, i) => s + i.qty, 0);
+  window.cartRequest = function (url, method, data) {
+    return fetch(url, {
+      method: method,
+      headers: {
+        "X-CSRF-TOKEN": csrfToken(),
+        "X-Requested-With": "XMLHttpRequest",
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: data ? JSON.stringify(data) : undefined,
+    }).then(function (res) {
+      return res.json().then(function (body) {
+        return { ok: res.ok, status: res.status, body: body };
+      });
+    });
+  };
+
+  function updateCartCount(n) {
     document.querySelectorAll(".cart-count").forEach((el) => {
       el.textContent = n;
       el.style.transform = "scale(1.4)";
       setTimeout(() => (el.style.transform = "scale(1)"), 220);
     });
   }
-  window.paintCount = paintCount;
+  window.updateCartCount = updateCartCount;
 
-  /* Phase 2: addToCart now takes the product's own data (captured from the
-     server-rendered page at the moment of the click) instead of looking an
-     id up in a hardcoded catalogue — the cart item stores its own snapshot
-     of name/price/img/cat, exactly like a real order line will later. */
-  window.addToCart = function (product, qty) {
-    if (!product || !product.id) return;
-    const cart = getCart();
-    const found = cart.find((i) => String(i.id) === String(product.id));
-    if (found) {
-      found.qty += qty || 1;
-    } else {
-      cart.push({
-        id: product.id,
-        qty: qty || 1,
-        name: product.name || "Item",
-        price: Number(product.price) || 0,
-        img: product.img || "",
-        cat: product.cat || "",
-        url: product.url || "#",
-      });
-    }
-    saveCart(cart);
-    toast((product.name || "Item") + " added to bag");
-  };
+  // One-time cleanup: earlier phases kept the cart in localStorage under
+  // this key. It's no longer read anywhere, but clear it so it can't be
+  // mistaken for live data (e.g. in devtools) now that the database cart
+  // is authoritative.
+  try { localStorage.removeItem("aurelia_cart"); } catch (e) {}
 
   /* ---------- Toast ---------- */
   let toastEl;
@@ -71,24 +69,24 @@
   window.toast = toast;
 
   /* ---------- Global delegated events ----------
-     Phase 2: product cards are now rendered server-side by Blade
-     (resources/views/partials/product-card.blade.php). The quick-add
-     overlay on each card carries the product's data as data-* attributes
-     instead of just an id, since there's no client-side catalogue left
-     to look the rest up in. */
+     Phase 3: the quick-add overlay on each product card (server-rendered
+     by partials/product-card.blade.php) now posts to the real cart
+     backend instead of writing to localStorage — only a product id is
+     sent; the server decides price/availability. */
   document.addEventListener("click", function (e) {
     const add = e.target.closest("[data-add]");
-    if (add) {
-      e.preventDefault();
-      window.addToCart({
-        id: add.getAttribute("data-product-id"),
-        name: add.getAttribute("data-product-name"),
-        price: add.getAttribute("data-product-price"),
-        img: add.getAttribute("data-product-img"),
-        cat: add.getAttribute("data-product-cat"),
-        url: add.getAttribute("data-product-url"),
-      }, 1);
-    }
+    if (!add) return;
+    e.preventDefault();
+
+    window.cartRequest("/cart/add", "POST", {
+      product_id: add.getAttribute("data-product-id"),
+      quantity: 1,
+    }).then(function (res) {
+      if (res.body && res.body.message) toast(res.body.message);
+      if (res.ok && res.body) updateCartCount(res.body.count);
+    }).catch(function () {
+      toast("Could not add to bag");
+    });
   });
 
   /* ---------- Navbar scroll state ---------- */
@@ -259,7 +257,5 @@
     initHero();
     initForms();
     initTilt();
-
-    paintCount();
   });
 })();

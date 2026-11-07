@@ -89,13 +89,9 @@
             <input id="qty" value="1" inputmode="numeric">
             <button type="button" data-step="1">+</button>
           </div>
-          <button class="btn btn-gold" id="addBtn"
-                  data-product-id="{{ $product->id }}"
-                  data-product-name="{{ $product->name }}"
-                  data-product-price="{{ $product->has_discount ? $product->sale_price : $product->price }}"
-                  data-product-img="{{ $mainImage ? asset($mainImage->image_path) : asset('img/p1.jpg') }}"
-                  data-product-cat="{{ $product->category->name ?? '' }}"
-                  data-product-url="{{ route('product.show', $product) }}">Add to bag</button>
+          {{-- Phase 3: only the product id (+ selected variant id, read from
+               #variant above) is sent to the cart backend — see product.js. --}}
+          <button class="btn btn-gold" id="addBtn" data-product-id="{{ $product->id }}">Add to bag</button>
           <button class="btn btn-ghost"><i class="bi bi-heart me-2"></i>Save</button>
         </div>
 

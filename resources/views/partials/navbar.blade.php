@@ -17,7 +17,7 @@
       <div class="d-flex align-items-center">
         <a href="{{ route('shop') }}" class="nav-icon"><i class="bi bi-search"></i></a>
         <a href="#" class="nav-icon"><i class="bi bi-person"></i></a>
-        <a href="{{ route('cart.index') }}" class="nav-icon"><i class="bi bi-bag"></i><span class="cart-count">0</span></a>
+        <a href="{{ route('cart.index') }}" class="nav-icon"><i class="bi bi-bag"></i><span class="cart-count">{{ $cartCount ?? 0 }}</span></a>
       </div>
     </div>
   </div>

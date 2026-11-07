@@ -56,17 +56,25 @@
     });
     if (qty) qty.style.transition = "transform .18s ease";
 
+    /* Phase 3: posts to the real cart backend — only product_id, the
+       selected variant_id (if the product has variants) and quantity are
+       sent. Price/name/image/stock are all decided server-side. */
     var addBtn = document.getElementById("addBtn");
+    var variantSelect = document.getElementById("variant");
     if (addBtn) {
       addBtn.addEventListener("click", function () {
-        window.addToCart({
-          id: addBtn.getAttribute("data-product-id"),
-          name: addBtn.getAttribute("data-product-name"),
-          price: addBtn.getAttribute("data-product-price"),
-          img: addBtn.getAttribute("data-product-img"),
-          cat: addBtn.getAttribute("data-product-cat"),
-          url: addBtn.getAttribute("data-product-url"),
-        }, parseInt(qty ? qty.value : 1, 10) || 1);
+        var payload = {
+          product_id: addBtn.getAttribute("data-product-id"),
+          quantity: parseInt(qty ? qty.value : 1, 10) || 1,
+        };
+        if (variantSelect && variantSelect.value) payload.variant_id = variantSelect.value;
+
+        window.cartRequest("/cart/add", "POST", payload).then(function (res) {
+          if (res.body && res.body.message) window.toast(res.body.message);
+          if (res.ok && res.body) window.updateCartCount(res.body.count);
+        }).catch(function () {
+          window.toast("Could not add to bag");
+        });
       });
     }
 

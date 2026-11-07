@@ -76,6 +76,8 @@ class ShopController extends Controller
         }
 
         if ($search !== '') {
+            // Storefront search matches the product name/title only (not
+            // description, short_description, sku, category, or gemstone).
             $query->where('name', 'like', "%{$search}%");
         }
 
