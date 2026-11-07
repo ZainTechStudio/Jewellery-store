@@ -21,5 +21,15 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Catalog lookup tables first (categories, products and their
+        // variants all reference these via foreign key).
+        $this->call([
+            MetalTypeSeeder::class,
+            GemstoneSeeder::class,
+            OccasionSeeder::class,
+            CategorySeeder::class,
+            ProductSeeder::class,
+        ]);
     }
 }
