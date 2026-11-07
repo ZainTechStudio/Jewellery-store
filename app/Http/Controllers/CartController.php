@@ -16,10 +16,10 @@ class CartController extends Controller
     /**
      * Show the shopping bag page.
      *
-     * Phase 3: fully database-backed. The cart is resolved from the
-     * current Laravel session (no auth yet, so user_id stays null — see
-     * Cart::findCurrent()). Read-only lookup: just viewing the page never
-     * creates a cart row.
+     * Fully database-backed. The cart is resolved by Cart::findCurrent()
+     * — the authenticated user's cart when logged in, otherwise the guest
+     * session's cart (see app/Models/Cart.php). Read-only lookup: just
+     * viewing the page never creates a cart row.
      */
     public function index(): View
     {
@@ -29,7 +29,8 @@ class CartController extends Controller
     }
 
     /**
-     * Add a product (optionally a variant) to the current session's cart.
+     * Add a product (optionally a variant) to the current cart (the
+     * authenticated user's cart, or the guest session's cart).
      *
      * Price, product name/image/SKU and stock are never trusted from the
      * client — only product_id, variant_id and quantity are accepted, and
@@ -106,9 +107,9 @@ class CartController extends Controller
 
     /**
      * Update a cart item's quantity. Ownership of the item by the current
-     * session's cart is verified before any change (implicit route-model
-     * binding resolves the row, but binding alone does not check
-     * ownership — that happens explicitly here).
+     * cart (user's or guest session's) is verified before any change
+     * (implicit route-model binding resolves the row, but binding alone
+     * does not check ownership — that happens explicitly here).
      */
     public function update(Request $request, CartItem $cartItem): RedirectResponse|JsonResponse
     {
@@ -139,8 +140,8 @@ class CartController extends Controller
     }
 
     /**
-     * Remove a single item from the current session's cart (ownership
-     * verified the same way as update()).
+     * Remove a single item from the current cart (ownership verified the
+     * same way as update()).
      */
     public function remove(Request $request, CartItem $cartItem): RedirectResponse|JsonResponse
     {
@@ -156,8 +157,7 @@ class CartController extends Controller
     }
 
     /**
-     * Empty the current session's cart only — never touches any other
-     * session's cart.
+     * Empty the current cart only — never touches anyone else's cart.
      */
     public function clear(Request $request): RedirectResponse|JsonResponse
     {

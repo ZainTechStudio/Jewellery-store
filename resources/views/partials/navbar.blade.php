@@ -16,7 +16,29 @@
       </ul>
       <div class="d-flex align-items-center">
         <a href="{{ route('shop') }}" class="nav-icon"><i class="bi bi-search"></i></a>
-        <a href="#" class="nav-icon"><i class="bi bi-person"></i></a>
+        {{-- Phase 4: the person icon is now a small Bootstrap dropdown showing
+             auth state, instead of a dead link. Same icon/position as before —
+             no navbar redesign, just real behaviour behind it. --}}
+        <div class="dropdown d-inline-block">
+          <a href="#" class="nav-icon" id="accountMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-person"></i></a>
+          <ul class="dropdown-menu dropdown-menu-end account-dropdown" aria-labelledby="accountMenu">
+            @auth
+              <li><span class="dropdown-item-text text-muted-lux" style="font-size:.78rem">{{ Auth::user()->name }}</span></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{{ route('account.index') }}">My Account</a></li>
+              <li><a class="dropdown-item" href="{{ route('account.addresses.index') }}">Addresses</a></li>
+              <li>
+                <form method="POST" action="{{ route('logout') }}">
+                  @csrf
+                  <button type="submit" class="dropdown-item">Logout</button>
+                </form>
+              </li>
+            @else
+              <li><a class="dropdown-item" href="{{ route('login') }}">Login</a></li>
+              <li><a class="dropdown-item" href="{{ route('register') }}">Register</a></li>
+            @endauth
+          </ul>
+        </div>
         <a href="{{ route('cart.index') }}" class="nav-icon"><i class="bi bi-bag"></i><span class="cart-count">{{ $cartCount ?? 0 }}</span></a>
       </div>
     </div>

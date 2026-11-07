@@ -513,6 +513,29 @@ a { text-decoration: none; color: inherit; }
 .icon-btn { background: transparent; border: 0; color: var(--muted); transition: color .3s ease, transform .3s ease; }
 .icon-btn:hover { color: var(--gold); transform: scale(1.15); }
 
+/* ---------------- Account dropdown (Phase 4) ---------------- */
+.account-dropdown {
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: .4rem 0;
+  margin-top: .6rem;
+  min-width: 200px;
+  box-shadow: var(--shadow-soft);
+}
+.account-dropdown .dropdown-item,
+.account-dropdown .dropdown-item-text {
+  color: var(--text);
+  font-size: .82rem;
+  padding: .5rem 1.1rem;
+}
+.account-dropdown .dropdown-item:hover,
+.account-dropdown .dropdown-item:focus {
+  background: rgba(212, 175, 55, .1);
+  color: var(--gold-2);
+}
+.account-dropdown .dropdown-divider { border-color: var(--line); }
+
 /* ---------------- Footer ---------------- */
 .footer-lux {
   background: linear-gradient(180deg, #0a0a0d, #060608);
