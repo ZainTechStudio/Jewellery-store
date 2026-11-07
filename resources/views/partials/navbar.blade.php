@@ -6,7 +6,11 @@
       <ul class="navbar-nav mx-auto">
         <li class="nav-item"><a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Home</a></li>
         <li class="nav-item"><a class="nav-link {{ request()->routeIs('shop') ? 'active' : '' }}" href="{{ route('shop') }}">Shop</a></li>
-        <li class="nav-item"><a class="nav-link {{ request()->routeIs('product.show') ? 'active' : '' }}" href="{{ route('product.show') }}">Collection</a></li>
+        {{-- Phase 2: "Collection" used to link to a generic /product page (defaulted to the
+             first hardcoded product). Real products now live at /product/{slug}, so there is
+             no single "generic" product page to link to any more — this now points to the
+             shop listing, which is what "browse the collection" actually means. --}}
+        <li class="nav-item"><a class="nav-link {{ request()->routeIs('product.show') ? 'active' : '' }}" href="{{ route('shop') }}">Collection</a></li>
         <li class="nav-item"><a class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}" href="{{ route('about') }}">About</a></li>
         <li class="nav-item"><a class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}" href="{{ route('contact') }}">Contact</a></li>
       </ul>

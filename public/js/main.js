@@ -4,26 +4,14 @@
 (function () {
   "use strict";
 
-  /* ---------- Product catalogue ----------
-     NOTE: This is placeholder data preserved from the original static
-     frontend. It will be replaced by real data rendered from the
-     Laravel backend (products table) in Phase 3 of the migration. */
-  const PRODUCTS = [
-    { id: "p1", name: "Solitaire Éclat Ring", cat: "Rings",     price: 4850, old: 5400, img: "/img/p1.jpg", tag: "Bestseller", rating: 5 },
-    { id: "p2", name: "Champagne Halo Pendant", cat: "Necklaces", price: 3290, old: null, img: "/img/p2.jpg", tag: "New", rating: 5 },
-    { id: "p3", name: "Lumière Drop Earrings", cat: "Earrings",  price: 2740, old: 3100, img: "/img/p3.jpg", tag: null, rating: 4 },
-    { id: "p4", name: "Aurelia Tennis Bracelet", cat: "Bracelets", price: 6980, old: null, img: "/img/p4.jpg", tag: "Signature", rating: 5 },
-    { id: "p5", name: "Emerald Royale Ring", cat: "Rings",       price: 8450, old: 9200, img: "/img/p5.jpg", tag: "Limited", rating: 5 },
-    { id: "p6", name: "Pearl & Gold Heirloom Set", cat: "Sets",  price: 5620, old: null, img: "/img/p6.jpg", tag: null, rating: 4 },
-    { id: "p7", name: "Ivory Crescent Necklace", cat: "Necklaces", price: 3980, old: null, img: "/img/p2.jpg", tag: null, rating: 4 },
-    { id: "p8", name: "Golden Whisper Studs", cat: "Earrings",   price: 1890, old: 2200, img: "/img/p3.jpg", tag: "Sale", rating: 5 }
-  ];
-  window.PRODUCTS = PRODUCTS;
-
-  const money = (n) => "$" + n.toLocaleString("en-US");
+  /* ---------- Money formatting ----------
+     Phase 2: the hardcoded PRODUCTS catalogue and findProduct() are gone —
+     the database (via Laravel/Blade) is now the only source of truth for
+     product data. This helper is pure number formatting, kept because
+     cart.js still uses it to display the localStorage cart (cart business
+     logic itself is out of scope for this phase; see cart.js). */
+  const money = (n) => "$" + Number(n).toLocaleString("en-US");
   window.money = money;
-  const byId = (id) => PRODUCTS.find((p) => p.id === id);
-  window.findProduct = byId;
 
   /* ---------- Cart (localStorage) ---------- */
   const KEY = "aurelia_cart";
@@ -42,12 +30,29 @@
   }
   window.paintCount = paintCount;
 
-  window.addToCart = function (id, qty) {
+  /* Phase 2: addToCart now takes the product's own data (captured from the
+     server-rendered page at the moment of the click) instead of looking an
+     id up in a hardcoded catalogue — the cart item stores its own snapshot
+     of name/price/img/cat, exactly like a real order line will later. */
+  window.addToCart = function (product, qty) {
+    if (!product || !product.id) return;
     const cart = getCart();
-    const found = cart.find((i) => i.id === id);
-    if (found) found.qty += qty || 1; else cart.push({ id: id, qty: qty || 1 });
+    const found = cart.find((i) => String(i.id) === String(product.id));
+    if (found) {
+      found.qty += qty || 1;
+    } else {
+      cart.push({
+        id: product.id,
+        qty: qty || 1,
+        name: product.name || "Item",
+        price: Number(product.price) || 0,
+        img: product.img || "",
+        cat: product.cat || "",
+        url: product.url || "#",
+      });
+    }
     saveCart(cart);
-    toast((byId(id) ? byId(id).name : "Item") + " added to bag");
+    toast((product.name || "Item") + " added to bag");
   };
 
   /* ---------- Toast ---------- */
@@ -65,32 +70,25 @@
   }
   window.toast = toast;
 
-  /* ---------- Card markup ---------- */
-  window.productCard = function (p, delay) {
-    const stars = '★'.repeat(p.rating) + '☆'.repeat(5 - p.rating);
-    return (
-      '<div class="col-6 col-lg-3" data-aos="fade-up" data-aos-delay="' + (delay || 0) + '">' +
-        '<article class="card-lux">' +
-          '<a href="/product?id=' + p.id + '" class="card-media d-block">' +
-            (p.tag ? '<span class="badge-lux">' + p.tag + '</span>' : '') +
-            '<img src="' + p.img + '" alt="' + p.name + '" loading="lazy" width="900" height="900">' +
-            '<span class="quick-add" data-add="' + p.id + '">Add to bag</span>' +
-          '</a>' +
-          '<div class="card-body-lux">' +
-            '<span class="card-cat">' + p.cat + '</span>' +
-            '<h5 class="mt-1"><a href="/product?id=' + p.id + '">' + p.name + '</a></h5>' +
-            '<div class="stars">' + stars + '</div>' +
-            '<div class="price">' + money(p.price) + (p.old ? '<del>' + money(p.old) + '</del>' : '') + '</div>' +
-          '</div>' +
-        '</article>' +
-      '</div>'
-    );
-  };
-
-  /* ---------- Global delegated events ---------- */
+  /* ---------- Global delegated events ----------
+     Phase 2: product cards are now rendered server-side by Blade
+     (resources/views/partials/product-card.blade.php). The quick-add
+     overlay on each card carries the product's data as data-* attributes
+     instead of just an id, since there's no client-side catalogue left
+     to look the rest up in. */
   document.addEventListener("click", function (e) {
     const add = e.target.closest("[data-add]");
-    if (add) { e.preventDefault(); window.addToCart(add.getAttribute("data-add"), 1); }
+    if (add) {
+      e.preventDefault();
+      window.addToCart({
+        id: add.getAttribute("data-product-id"),
+        name: add.getAttribute("data-product-name"),
+        price: add.getAttribute("data-product-price"),
+        img: add.getAttribute("data-product-img"),
+        cat: add.getAttribute("data-product-cat"),
+        url: add.getAttribute("data-product-url"),
+      }, 1);
+    }
   });
 
   /* ---------- Navbar scroll state ---------- */

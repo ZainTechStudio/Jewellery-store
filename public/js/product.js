@@ -1,51 +1,42 @@
 (function () {
   "use strict";
   document.addEventListener("DOMContentLoaded", function () {
-    var id = new URLSearchParams(location.search).get("id") || "p1";
-    var p = window.findProduct(id) || window.PRODUCTS[0];
+    /* Phase 2: the product name/price/description/gallery/related-products
+       are now rendered server-side by Blade from the real database product
+       (resources/views/product.blade.php + ProductController). This file
+       now only handles client-side-only UI interactions: thumbnail swap,
+       image zoom, the (cosmetic) metal swatch toggle, the quantity stepper,
+       and reading the add-to-bag button's data attributes into the cart. */
 
-    document.title = p.name + " — AURELIA Fine Jewellery";
-    document.getElementById("crumb").textContent = p.name;
-    document.getElementById("pCat").textContent = p.cat;
-    document.getElementById("pName").textContent = p.name;
-    document.getElementById("pPrice").innerHTML = window.money(p.price) + (p.old ? "<del>" + window.money(p.old) + "</del>" : "");
-    document.getElementById("pStars").innerHTML =
-      "★".repeat(p.rating) + "☆".repeat(5 - p.rating) +
-      '<span class="text-muted-lux ms-2" style="letter-spacing:.14em">128 reviews</span>';
-
-    /* gallery */
-    var gallery = [p.img].concat(
-      window.PRODUCTS.filter(function (x) { return x.id !== p.id; }).slice(0, 3).map(function (x) { return x.img; })
-    );
     var main = document.getElementById("mainImg");
-    main.src = gallery[0];
-    main.alt = p.name;
-    document.getElementById("thumbs").innerHTML = gallery.map(function (src, i) {
-      return '<div class="col-3"><div class="thumb' + (i === 0 ? " active" : "") + '" data-src="' + src + '">' +
-        '<img src="' + src + '" alt="' + p.name + ' view ' + (i + 1) + '" loading="lazy"></div></div>';
-    }).join("");
 
-    document.getElementById("thumbs").addEventListener("click", function (e) {
-      var t = e.target.closest(".thumb");
-      if (!t) return;
-      document.querySelectorAll(".thumb").forEach(function (el) { el.classList.remove("active"); });
-      t.classList.add("active");
-      main.style.opacity = 0;
-      setTimeout(function () { main.src = t.getAttribute("data-src"); main.style.opacity = 1; }, 160);
-    });
-    main.style.transition = "opacity .25s ease, transform .35s ease";
+    /* thumbnail swap */
+    var thumbs = document.getElementById("thumbs");
+    if (thumbs && main) {
+      thumbs.addEventListener("click", function (e) {
+        var t = e.target.closest(".thumb");
+        if (!t) return;
+        document.querySelectorAll(".thumb").forEach(function (el) { el.classList.remove("active"); });
+        t.classList.add("active");
+        main.style.opacity = 0;
+        setTimeout(function () { main.src = t.getAttribute("data-src"); main.style.opacity = 1; }, 160);
+      });
+      main.style.transition = "opacity .25s ease, transform .35s ease";
+    }
 
     /* zoom */
     var box = document.getElementById("galleryMain");
-    box.addEventListener("click", function () { box.classList.toggle("zoomed"); });
-    box.addEventListener("mousemove", function (e) {
-      if (!box.classList.contains("zoomed")) return;
-      var r = box.getBoundingClientRect();
-      main.style.transformOrigin = ((e.clientX - r.left) / r.width * 100) + "% " + ((e.clientY - r.top) / r.height * 100) + "%";
-    });
-    box.addEventListener("mouseleave", function () { box.classList.remove("zoomed"); });
+    if (box && main) {
+      box.addEventListener("click", function () { box.classList.toggle("zoomed"); });
+      box.addEventListener("mousemove", function (e) {
+        if (!box.classList.contains("zoomed")) return;
+        var r = box.getBoundingClientRect();
+        main.style.transformOrigin = ((e.clientX - r.left) / r.width * 100) + "% " + ((e.clientY - r.top) / r.height * 100) + "%";
+      });
+      box.addEventListener("mouseleave", function () { box.classList.remove("zoomed"); });
+    }
 
-    /* swatches */
+    /* swatches — cosmetic only, see product.blade.php for why */
     document.querySelectorAll(".swatch").forEach(function (s) {
       s.addEventListener("click", function () {
         document.querySelectorAll(".swatch").forEach(function (x) { x.classList.remove("active"); });
@@ -63,19 +54,22 @@
         setTimeout(function () { qty.style.transform = "scale(1)"; }, 180);
       });
     });
-    qty.style.transition = "transform .18s ease";
-    document.getElementById("addBtn").addEventListener("click", function () {
-      window.addToCart(p.id, parseInt(qty.value, 10) || 1);
-    });
+    if (qty) qty.style.transition = "transform .18s ease";
 
-    /* related slider — 4 per slide desktop */
-    var rel = window.PRODUCTS.filter(function (x) { return x.id !== p.id; });
-    var slides = [];
-    for (var i = 0; i < rel.length; i += 4) slides.push(rel.slice(i, i + 4));
-    document.getElementById("relatedInner").innerHTML = slides.map(function (group, i) {
-      return '<div class="carousel-item' + (i === 0 ? " active" : "") + '"><div class="row g-4 px-lg-5">' +
-        group.map(function (x) { return window.productCard(x, 0); }).join("") + "</div></div>";
-    }).join("");
+    var addBtn = document.getElementById("addBtn");
+    if (addBtn) {
+      addBtn.addEventListener("click", function () {
+        window.addToCart({
+          id: addBtn.getAttribute("data-product-id"),
+          name: addBtn.getAttribute("data-product-name"),
+          price: addBtn.getAttribute("data-product-price"),
+          img: addBtn.getAttribute("data-product-img"),
+          cat: addBtn.getAttribute("data-product-cat"),
+          url: addBtn.getAttribute("data-product-url"),
+        }, parseInt(qty ? qty.value : 1, 10) || 1);
+      });
+    }
+
     if (window.AOS) AOS.refresh();
   });
 })();

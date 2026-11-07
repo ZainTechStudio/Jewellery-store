@@ -11,7 +11,10 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');
 
-Route::get('/product', [ProductController::class, 'show'])->name('product.show');
+// Phase 2: was a `?id=` query-string lookup against the hardcoded JS
+// catalogue. Now a proper slug route with implicit route-model binding
+// against the products table (route name kept stable: product.show).
+Route::get('/product/{product:slug}', [ProductController::class, 'show'])->name('product.show');
 
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 

@@ -58,18 +58,16 @@
       <div class="rule"></div>
     </div>
     <div class="row g-4">
-      <div class="col-md-4" data-aos="fade-up"><a class="cat-tile" href="{{ route('shop') }}?cat=Rings">
-        <img src="{{ asset('img/p1.jpg') }}" alt="Rings" loading="lazy">
-        <div class="cat-body"><h4>Rings</h4><br><span>Discover →</span></div></a>
+      {{-- Phase 2: category tiles are now database-backed (top 3 active top-level
+           categories by sort_order). No category images are seeded yet, so the
+           existing placeholder photos are reused per tile position — no new
+           photography invented. --}}
+      @foreach($topCategories as $i => $category)
+      <div class="col-md-4" data-aos="fade-up" data-aos-delay="{{ $i * 120 }}"><a class="cat-tile" href="{{ route('shop') }}?category={{ $category->slug }}">
+        <img src="{{ $category->image ? asset($category->image) : asset('img/p'.($i + 1).'.jpg') }}" alt="{{ $category->name }}" loading="lazy">
+        <div class="cat-body"><h4>{{ $category->name }}</h4><br><span>Discover →</span></div></a>
       </div>
-      <div class="col-md-4" data-aos="fade-up" data-aos-delay="120"><a class="cat-tile" href="{{ route('shop') }}?cat=Necklaces">
-        <img src="{{ asset('img/p2.jpg') }}" alt="Necklaces" loading="lazy">
-        <div class="cat-body"><h4>Necklaces</h4><br><span>Discover →</span></div></a>
-      </div>
-      <div class="col-md-4" data-aos="fade-up" data-aos-delay="240"><a class="cat-tile" href="{{ route('shop') }}?cat=Earrings">
-        <img src="{{ asset('img/p3.jpg') }}" alt="Earrings" loading="lazy">
-        <div class="cat-body"><h4>Earrings</h4><br><span>Discover →</span></div></a>
-      </div>
+      @endforeach
     </div>
   </div>
 </section>
@@ -81,7 +79,12 @@
       <h2 class="display-6">Featured Jewellery</h2>
       <div class="rule"></div>
     </div>
-    <div class="row g-4" id="featuredGrid"></div>
+    <div class="row g-4">
+      {{-- Phase 2: featured products now come from the database (is_active + is_featured, ordered by sort_order). --}}
+      @foreach($featuredProducts as $i => $product)
+        @include('partials.product-card', ['product' => $product, 'delay' => $i * 100])
+      @endforeach
+    </div>
     <div class="text-center mt-5" data-aos="fade-up">
       <a href="{{ route('shop') }}" class="btn btn-ghost">View all pieces</a>
     </div>
@@ -157,15 +160,3 @@
 </section>
 
 @endsection
-
-@push('scripts')
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    var grid = document.getElementById("featuredGrid");
-    grid.innerHTML = window.PRODUCTS.slice(0, 4).map(function (p, i) {
-      return window.productCard(p, i * 100);
-    }).join("");
-    if (window.AOS) AOS.refresh();
-  });
-</script>
-@endpush
