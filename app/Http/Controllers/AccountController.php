@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,6 +17,39 @@ class AccountController extends Controller
     public function index(): View
     {
         return view('account.index', ['user' => Auth::user()]);
+    }
+
+    /**
+     * Phase 6 Part A: order history, scoped to the authenticated user
+     * only. Newest first, paginated, with item count via withCount()
+     * (no per-row N+1) rather than loading every item of every order.
+     */
+    public function orders(): View
+    {
+        $orders = Auth::user()->orders()
+            ->withCount('items')
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
+        return view('account.orders.index', ['orders' => $orders]);
+    }
+
+    /**
+     * Order detail — uses the same historical order_items snapshot
+     * columns Phase 5 created (never live product data). Ownership is
+     * checked explicitly; route-model binding alone does not scope by
+     * owner, and a mismatch 404s rather than 403s so a guessed order id
+     * can't even confirm another customer's order exists.
+     */
+    public function orderShow(Order $order): View
+    {
+        if ($order->user_id !== Auth::id()) {
+            abort(404);
+        }
+
+        $order->load(['items', 'shippingAddress']);
+
+        return view('account.orders.show', ['order' => $order]);
     }
 
     public function editProfile(): View

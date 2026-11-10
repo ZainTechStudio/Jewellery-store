@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'phone', 'is_active', 'password'])]
+#[Fillable(['name', 'email', 'phone', 'is_active', 'role', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -50,5 +50,17 @@ class User extends Authenticatable
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Phase 6: `role` is deliberately NOT in any public-facing controller's
+     * validated()/update() array (AuthController::register,
+     * AccountController::updateProfile) — the same protective pattern
+     * already used for `is_active`. It's only ever set server-side (the
+     * admin user seeder, or a future admin customer-management screen).
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
     }
 }

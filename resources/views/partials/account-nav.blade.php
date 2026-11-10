@@ -3,6 +3,7 @@
   <div class="d-flex flex-column gap-2">
     <a href="{{ route('account.index') }}" class="{{ request()->routeIs('account.index') ? 'text-gold' : 'text-muted-lux' }}" style="font-size:.85rem">Dashboard</a>
     <a href="{{ route('account.profile.edit') }}" class="{{ request()->routeIs('account.profile.*') ? 'text-gold' : 'text-muted-lux' }}" style="font-size:.85rem">Profile</a>
+    <a href="{{ route('account.orders.index') }}" class="{{ request()->routeIs('account.orders.*') ? 'text-gold' : 'text-muted-lux' }}" style="font-size:.85rem">My Orders</a>
     <a href="{{ route('account.password.edit') }}" class="{{ request()->routeIs('account.password.*') ? 'text-gold' : 'text-muted-lux' }}" style="font-size:.85rem">Password</a>
     <a href="{{ route('account.addresses.index') }}" class="{{ request()->routeIs('account.addresses.*') ? 'text-gold' : 'text-muted-lux' }}" style="font-size:.85rem">Addresses</a>
     <hr style="border-color:var(--line)" class="my-1">

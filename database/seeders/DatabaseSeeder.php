@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             OccasionSeeder::class,
             CategorySeeder::class,
             ProductSeeder::class,
+            AdminUserSeeder::class,
         ]);
     }
 }
